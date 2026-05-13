@@ -10,7 +10,11 @@ To start a local development server, run:
 npm run develop
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4206/`. The application will automatically reload whenever you modify any of the source files.
+Once the server is running, open your browser and navigate to `http://localhost:4212/`. The application will automatically reload whenever you modify any of the source files.
+
+## Live url
+
+1. https://actionanand.github.io/mozhi-type/
 
 ## Cloning Guide
 
@@ -274,3 +278,5 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+- [Tamil Changathi](https://tamil.changathi.com/)

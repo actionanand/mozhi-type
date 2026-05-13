@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "develop": "ng serve --port 4211",
+    "develop": "ng serve --port 4212",
     "build": "ng build",
     "build:gh": "ng build --base-href /mozhi-type/",
     "watch": "ng build --watch --configuration development",
