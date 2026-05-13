@@ -140,6 +140,11 @@ export class TransliterationInputComponent {
         this.suggestionNavigate.emit('dismiss');
         return;
       }
+      if (event.key === 'Backspace') {
+        // Dismiss suggestions and let browser handle deletion normally
+        this.suggestionNavigate.emit('dismiss');
+        return;
+      }
     }
 
     if (event.key === ' ' || event.key === 'Enter') {
@@ -153,6 +158,7 @@ export class TransliterationInputComponent {
         // Check if it's a Tamil character (Unicode range 0B80-0BFF)
         const code = charBefore.charCodeAt(0);
         if (code >= 0x0b80 && code <= 0x0bff) {
+          event.preventDefault();
           this.backspaceAtTamil.emit({ value: textarea.value, cursorPos: pos });
         }
       }

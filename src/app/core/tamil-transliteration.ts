@@ -76,7 +76,7 @@ const CONSONANTS: [string, string][] = [
   ['shri', 'ஸ்ரீ'],
   ['sri', 'ஸ்ரீ'],
   ['ksh', 'க்ஷ'],
-  ['nya', 'ஞ'],
+  ['ny', 'ஞ'],
   ['ngh', 'ங'],
   ['NGh', 'ங'],
   ['njh', 'ஞ'],
@@ -149,6 +149,16 @@ const TAMIL_NUMBERS: Record<string, string> = {
   '9': '௯',
 };
 
+// Special symbols accessible via Q-prefix shortcuts
+const SPECIAL_SYMBOLS: [string, string][] = [
+  ['QD', '௳'], // நாள் (day)
+  ['QM', '௴'], // மாதம் (month)
+  ['QY', '௵'], // வருடம் (year)
+  ['QA', '௸'], // மேற்படி (as above)
+  ['QR', '௹'], // ரூபாய் (rupee)
+  ['QN', '௺'], // எண் (number)
+];
+
 const PULLI = '\u0BCD'; // ்
 
 /**
@@ -160,21 +170,25 @@ export const SIMILAR_GROUPS: string[][] = [
   ['ல', 'ழ', 'ள'], // la variants
   ['ர', 'ற'], // ra variants
   ['ட', 'த'], // ta variants
-  ['ச', 'ஸ', 'ஷ'], // sa/sha variants
+  ['ச', 'ஸ', 'ஷ', 'ஶ'], // sa/sha variants
   ['ஜ', 'ச'], // ja/cha
 ];
 
 /**
  * Find similar alternatives for a Tamil character.
+ * Merges all groups containing the character.
  * Returns alternatives (excluding the input character itself), or empty array.
  */
 export function getSimilarChars(tamilChar: string): string[] {
+  const result = new Set<string>();
   for (const group of SIMILAR_GROUPS) {
     if (group.includes(tamilChar)) {
-      return group.filter((c) => c !== tamilChar);
+      for (const c of group) {
+        if (c !== tamilChar) result.add(c);
+      }
     }
   }
-  return [];
+  return [...result];
 }
 
 function matchAt(
@@ -228,6 +242,14 @@ export function transliterateWord(input: string): string {
     if (!/[a-zA-Z]/.test(ch)) {
       result += ch;
       pos++;
+      continue;
+    }
+
+    // Try special symbol shortcuts (Q-prefix)
+    const specialSym = matchAt(input, pos, SPECIAL_SYMBOLS, true);
+    if (specialSym) {
+      result += specialSym[0];
+      pos += specialSym[1];
       continue;
     }
 

@@ -242,12 +242,12 @@ export class KeyboardReferenceComponent {
   ];
 
   readonly specialSymbols: CharMapping[] = [
-    { english: '௳', tamil: 'நாள்' },
-    { english: '௴', tamil: 'மாதம்' },
-    { english: '௵', tamil: 'வருடம்' },
-    { english: '௸', tamil: 'மேற்படி' },
-    { english: '௹', tamil: 'ரூபாய்' },
-    { english: '௺', tamil: 'எண்' },
+    { english: 'QD', tamil: '௳ நாள்' },
+    { english: 'QM', tamil: '௴ மாதம்' },
+    { english: 'QY', tamil: '௵ வருடம்' },
+    { english: 'QA', tamil: '௸ மேற்படி' },
+    { english: 'QR', tamil: '௹ ரூபாய்' },
+    { english: 'QN', tamil: '௺ எண்' },
   ];
 
   readonly examples: CharMapping[] = [
@@ -255,7 +255,7 @@ export class KeyboardReferenceComponent {
     { english: 'kaal', tamil: 'கால்' },
     { english: 'tamizh', tamil: 'தமிழ்' },
     { english: 'vaNakkam', tamil: 'வணக்கம்' },
-    { english: 'nya', tamil: 'ஞ' },
+    { english: 'nya', tamil: 'ஞ (ny)' },
     { english: 'Na', tamil: 'ண' },
     { english: 'nha', tamil: 'ந' },
     { english: 'pEsu', tamil: 'பேசு' },

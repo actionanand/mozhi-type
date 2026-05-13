@@ -179,7 +179,7 @@ export class TypingPageComponent {
     const text = this.displayText();
     const lastSpaceIdx = Math.max(text.lastIndexOf(' '), text.lastIndexOf('\n'));
     const currentWord = text.substring(lastSpaceIdx + 1);
-    if (!currentWord || !/[a-zA-Z]/.test(currentWord)) return '';
+    if (!currentWord || !/[a-zA-Z0-9]/.test(currentWord)) return '';
     return this.transliterationService.transliterateWord(currentWord);
   });
 
@@ -202,7 +202,7 @@ export class TypingPageComponent {
     wordStart++;
 
     const word = value.substring(wordStart, cursorPos);
-    if (!word || !/[a-zA-Z]/.test(word)) return;
+    if (!word || !/[a-zA-Z0-9]/.test(word)) return;
 
     const tamilWord = this.transliterationService.transliterateWord(word);
     const newValue = value.substring(0, wordStart) + tamilWord + value.substring(cursorPos);
@@ -235,6 +235,14 @@ export class TypingPageComponent {
       this.suggestions.set(similar);
       this.suggestionIndex.set(0);
       this.suggestionCursorPos = cursorPos;
+    } else {
+      // No similar chars — perform the deletion manually
+      const newValue = value.substring(0, cursorPos - 1) + value.substring(cursorPos);
+      this.displayText.set(newValue);
+      const comp = this.inputRef();
+      comp.setValue(newValue);
+      comp.setCursorPosition(cursorPos - 1);
+      this.tamilOutput.set(this.buildTamilOutput(newValue));
     }
   }
 
