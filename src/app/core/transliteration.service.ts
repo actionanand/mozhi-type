@@ -1,0 +1,31 @@
+import { Injectable } from '@angular/core';
+import {
+  transliterate,
+  transliterateWord,
+  getSimilarChars,
+  toTamilNumbers,
+  fromTamilNumeral,
+} from './tamil-transliteration';
+
+@Injectable({ providedIn: 'root' })
+export class TransliterationService {
+  transliterateWord(input: string): string {
+    return transliterateWord(input);
+  }
+
+  transliterate(input: string): string {
+    return transliterate(input);
+  }
+
+  getSimilarChars(tamilChar: string): string[] {
+    return getSimilarChars(tamilChar);
+  }
+
+  toTamilNumbers(input: string): string {
+    return toTamilNumbers(input);
+  }
+
+  fromTamilNumeral(input: string): string {
+    return fromTamilNumeral(input);
+  }
+}

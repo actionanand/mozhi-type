@@ -1,6 +1,6 @@
 # MozhiType
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.3.
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.11.
 
 ## Development server
 
@@ -275,8 +275,154 @@ ng e2e
 
 Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
 
-## Additional Resources
+## Important Angular 21.2+ Features
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+### 1. Arrow functions directly inside templates
+
+In recent versions of Angular (21.2+), you can use arrow functions directly within template expressions, which is especially useful with Angular Signals.
+
+```html
+<!-- No separate component method required -->
+<button (click)="count.update(n => n + 1)">Increment</button>
+```
+
+```ts
+count = signal(0);
+```
+
+---
+
+### 2. Improved Signal APIs
+
+Signals are now deeply integrated into Angular and can replace many RxJS-based UI state patterns.
+
+```ts
+import { signal, computed } from '@angular/core';
+
+count = signal(5);
+
+doubleCount = computed(() => this.count() * 2);
+```
+
+```html
+<p>{{ doubleCount() }}</p>
+```
+
+---
+
+### 3. New control flow syntax (`@if`, `@for`, `@switch`)
+
+Angular now provides built-in template control flow syntax with better readability and performance.
+
+```html
+@if (users.length > 0) {
+  <ul>
+    @for (user of users; track user.id) {
+      <li>{{ user.name }}</li>
+    }
+  </ul>
+} @else {
+  <p>No users found</p>
+}
+```
+
+---
+
+### 4. Deferrable views (`@defer`)
+
+Lazy load template sections only when needed for better performance.
+
+```html
+@defer {
+  <heavy-chart />
+} @loading {
+  <p>Loading chart...</p>
+}
+```
+
+---
+
+### 5. Standalone components by default
+
+No need for NgModules in most applications.
+
+```ts
+@Component({
+  selector: 'app-home',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './home.html',
+})
+export class HomeComponent {}
+```
+
+---
+
+### 6. Better hydration and SSR support
+
+Angular now includes improved server-side rendering and hydration for faster page loads and SEO improvements.
+
+```bash
+ng add @angular/ssr
+```
+
+---
+
+### 7. Built-in zoneless change detection support
+
+Angular now supports zoneless applications for better performance and predictable rendering.
+
+```ts
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideZonelessChangeDetection(),
+  ],
+});
+```
+
+---
+
+### 8. Resource API for async data
+
+The new Resource API simplifies async state handling.
+
+```ts
+userResource = resource({
+  loader: () => fetch('/api/user').then(r => r.json()),
+});
+```
+
+```html
+@if (userResource.hasValue()) {
+  <p>{{ userResource.value().name }}</p>
+}
+```
+
+---
+
+### 9. Improved typed reactive forms
+
+Reactive Forms now provide stronger type inference and safer form handling.
+
+```ts
+profileForm = new FormGroup({
+  name: new FormControl<string>(''),
+  age: new FormControl<number | null>(null),
+});
+```
+
+---
+
+### 10. Faster builds with Vite and esbuild
+
+Modern Angular versions use faster tooling internally for development and production builds.
+
+```bash
+ng serve
+```
+
+Startup time and HMR performance are significantly improved compared to older Webpack-based setups.
+
+## Other similar tools
 
 - [Tamil Changathi](https://tamil.changathi.com/)

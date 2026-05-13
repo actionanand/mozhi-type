@@ -1,3 +1,9 @@
-<div>MozhiType App</div>
-
+<nav class="site-nav" aria-label="Main navigation">
+  <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+    <span class="nav-icon" aria-hidden="true">⌨</span> Typing
+  </a>
+  <a routerLink="/converter" routerLinkActive="active">
+    <span class="nav-icon" aria-hidden="true">🔢</span> Number Converter
+  </a>
+</nav>
 <router-outlet />
