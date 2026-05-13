@@ -86,7 +86,7 @@ import { SuggestionPopupComponent } from '../suggestion-popup/suggestion-popup';
         <app-suggestion-popup
           [suggestions]="suggestions()"
           [activeIndex]="suggestionIndex()"
-          (select)="onSuggestionSelect($event)"
+          (charSelect)="onSuggestionSelect($event)"
         />
       </div>
     </div>

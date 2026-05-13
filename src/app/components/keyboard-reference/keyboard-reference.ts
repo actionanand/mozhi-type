@@ -52,7 +52,7 @@ interface CharMapping {
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
       gap: 0.375rem;
     }
     .char-card {
@@ -64,6 +64,8 @@ interface CharMapping {
       background: #fff;
       border: 1px solid #e5e7eb;
       border-radius: 0.375rem;
+      overflow: visible;
+      min-height: 2rem;
     }
     .tamil {
       font-family: 'Noto Sans Tamil', 'Latha', sans-serif;
@@ -146,6 +148,18 @@ interface CharMapping {
           </div>
         </div>
         <div class="section">
+          <h3>Special Symbols (சிறப்பு குறியீடுகள்)</h3>
+          <div class="grid">
+            @for (sym of specialSymbols; track sym.english) {
+              <div class="char-card">
+                <span class="tamil">{{ sym.english }}</span>
+                <span class="arrow">→</span>
+                <span class="english">{{ sym.tamil }}</span>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="section">
           <h3>Examples</h3>
           <div class="grid">
             @for (e of examples; track e.english) {
@@ -212,6 +226,7 @@ export class KeyboardReferenceComponent {
     { english: 'h / H', tamil: 'ஹ்' },
     { english: 'ksh / x', tamil: 'க்ஷ்' },
     { english: 'sri', tamil: 'ஸ்ரீ' },
+    { english: 'Sha', tamil: 'ஶ' },
   ];
 
   readonly tamilNumbers: CharMapping[] = [
@@ -226,14 +241,24 @@ export class KeyboardReferenceComponent {
     { english: '9', tamil: '௯' },
   ];
 
+  readonly specialSymbols: CharMapping[] = [
+    { english: '௳', tamil: 'நாள்' },
+    { english: '௴', tamil: 'மாதம்' },
+    { english: '௵', tamil: 'வருடம்' },
+    { english: '௸', tamil: 'மேற்படி' },
+    { english: '௹', tamil: 'ரூபாய்' },
+    { english: '௺', tamil: 'எண்' },
+  ];
+
   readonly examples: CharMapping[] = [
     { english: 'kal', tamil: 'கல்' },
     { english: 'kaal', tamil: 'கால்' },
     { english: 'tamizh', tamil: 'தமிழ்' },
     { english: 'vaNakkam', tamil: 'வணக்கம்' },
-    { english: 'nandri', tamil: 'னன்த்ரி' },
+    { english: 'nya', tamil: 'ஞ' },
     { english: 'Na', tamil: 'ண' },
     { english: 'nha', tamil: 'ந' },
     { english: 'pEsu', tamil: 'பேசு' },
+    { english: 'da', tamil: 'ட' },
   ];
 }

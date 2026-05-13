@@ -64,7 +64,7 @@ import { Component, ChangeDetectionStrategy, input, output } from '@angular/core
             [class.active]="i === activeIndex()"
             role="option"
             [attr.aria-selected]="i === activeIndex()"
-            (click)="select.emit(s)"
+            (click)="charSelect.emit(s)"
           >
             {{ s }}
           </button>
@@ -77,5 +77,5 @@ import { Component, ChangeDetectionStrategy, input, output } from '@angular/core
 export class SuggestionPopupComponent {
   readonly suggestions = input<string[]>([]);
   readonly activeIndex = input(0);
-  readonly select = output<string>();
+  readonly charSelect = output<string>();
 }

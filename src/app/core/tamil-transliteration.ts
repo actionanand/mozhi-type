@@ -76,6 +76,7 @@ const CONSONANTS: [string, string][] = [
   ['shri', 'ஸ்ரீ'],
   ['sri', 'ஸ்ரீ'],
   ['ksh', 'க்ஷ'],
+  ['nya', 'ஞ'],
   ['ngh', 'ங'],
   ['NGh', 'ங'],
   ['njh', 'ஞ'],
@@ -86,8 +87,8 @@ const CONSONANTS: [string, string][] = [
   ['NJ', 'ஞ'],
   ['ch', 'ச'],
   ['Ch', 'ச'],
+  ['Sh', 'ஶ'],
   ['sh', 'ஷ'],
-  ['Sh', 'ஷ'],
   ['th', 'த'],
   ['Th', 'த'],
   ['dh', 'த'],
@@ -156,11 +157,10 @@ const PULLI = '\u0BCD'; // ்
  */
 export const SIMILAR_GROUPS: string[][] = [
   ['ன', 'ந', 'ண'], // na variants
-  ['ல', 'ள'], // la variants
+  ['ல', 'ழ', 'ள'], // la variants
   ['ர', 'ற'], // ra variants
   ['ட', 'த'], // ta variants
-  ['ச', 'ஸ'], // sa variants
-  ['ஷ', 'ஸ'], // sha/sa
+  ['ச', 'ஸ', 'ஷ'], // sa/sha variants
   ['ஜ', 'ச'], // ja/cha
 ];
 
@@ -217,7 +217,14 @@ export function transliterateWord(input: string): string {
       continue;
     }
 
-    // Skip non-alpha characters (pass through digits, punctuation)
+    // Convert digits to Tamil numerals
+    if (/[0-9]/.test(ch)) {
+      result += TAMIL_NUMBERS[ch] ?? ch;
+      pos++;
+      continue;
+    }
+
+    // Skip non-alpha characters (pass through punctuation)
     if (!/[a-zA-Z]/.test(ch)) {
       result += ch;
       pos++;
@@ -269,7 +276,7 @@ export function transliterateWord(input: string): string {
  * Non-alphabetic characters pass through unchanged.
  */
 export function transliterate(input: string): string {
-  return input.replace(/[a-zA-Z]+/g, (word) => transliterateWord(word));
+  return input.replace(/[a-zA-Z0-9]+/g, (word) => transliterateWord(word));
 }
 
 /**

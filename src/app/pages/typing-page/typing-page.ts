@@ -59,27 +59,49 @@ import { TransliterationService } from '../../core/transliteration.service';
       display: flex;
       gap: 0.5rem;
       flex-wrap: wrap;
+      align-items: center;
       margin-bottom: 1.5rem;
     }
-    .clear-btn {
+    .clear-btn,
+    .pause-btn {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
       padding: 0.5rem 1rem;
       font-size: 0.875rem;
       font-weight: 500;
-      color: #dc2626;
       background: transparent;
-      border: 1px solid #dc2626;
       border-radius: 0.5rem;
       cursor: pointer;
       transition: all 0.2s;
+    }
+    .clear-btn {
+      color: #dc2626;
+      border: 1px solid #dc2626;
     }
     .clear-btn:hover {
       background: rgba(220, 38, 38, 0.05);
     }
     .clear-btn:focus-visible {
       outline: 2px solid #dc2626;
+      outline-offset: 2px;
+    }
+    .pause-btn {
+      color: #d97706;
+      border: 1px solid #d97706;
+    }
+    .pause-btn.active {
+      color: #fff;
+      background: #d97706;
+    }
+    .pause-btn:hover {
+      background: rgba(217, 119, 6, 0.05);
+    }
+    .pause-btn.active:hover {
+      background: #b45309;
+    }
+    .pause-btn:focus-visible {
+      outline: 2px solid #d97706;
       outline-offset: 2px;
     }
   `,
@@ -121,6 +143,16 @@ import { TransliterationService } from '../../core/transliteration.service';
 
     <div class="actions">
       <app-copy-button [textToCopy]="tamilOutput()" label="Tamil text" />
+      <button
+        class="pause-btn"
+        [class.active]="paused()"
+        type="button"
+        (click)="togglePause()"
+        [attr.aria-label]="paused() ? 'Resume Tamil conversion' : 'Pause Tamil conversion'"
+        [attr.aria-pressed]="paused()"
+      >
+        {{ paused() ? '▶ Resume Tamil' : '⏸ Pause (English)' }}
+      </button>
       <button class="clear-btn" type="button" (click)="clear()" aria-label="Clear all text">
         🗑 Clear
       </button>
@@ -137,11 +169,13 @@ export class TypingPageComponent {
 
   protected readonly displayText = signal('');
   protected readonly tamilOutput = signal('');
+  protected readonly paused = signal(false);
   protected readonly suggestions = signal<string[]>([]);
   protected readonly suggestionIndex = signal(0);
   private suggestionCursorPos = 0;
 
   protected readonly currentWordPreview = computed(() => {
+    if (this.paused()) return '';
     const text = this.displayText();
     const lastSpaceIdx = Math.max(text.lastIndexOf(' '), text.lastIndexOf('\n'));
     const currentWord = text.substring(lastSpaceIdx + 1);
@@ -151,13 +185,14 @@ export class TypingPageComponent {
 
   onInput(value: string): void {
     this.displayText.set(value);
-    // Dismiss suggestions on any normal input
     if (this.suggestions().length) {
       this.suggestions.set([]);
     }
   }
 
   onWordCommit(event: { value: string; cursorPos: number }): void {
+    if (this.paused()) return;
+
     const { value, cursorPos } = event;
 
     let wordStart = cursorPos - 1;
@@ -182,12 +217,12 @@ export class TypingPageComponent {
   }
 
   onBackspaceAtTamil(event: { value: string; cursorPos: number }): void {
+    if (this.paused()) return;
+
     const { value, cursorPos } = event;
-    // Look at the base consonant before cursor (skip pulli if present)
-    let checkPos = cursorPos - 1;
+    const checkPos = cursorPos - 1;
     const charCode = value.charCodeAt(checkPos);
 
-    // If it's a pulli (0BCD), check the char before it
     let baseChar: string;
     if (charCode === 0x0bcd && checkPos > 0) {
       baseChar = value[checkPos - 1];
@@ -207,19 +242,15 @@ export class TypingPageComponent {
     const value = this.displayText();
     const pos = this.suggestionCursorPos;
 
-    // Find the base consonant position to replace
-    let replaceStart = pos - 1;
-    let replaceEnd = pos;
+    const replaceStart = pos - 1;
+    const replaceEnd = pos;
     const charCode = value.charCodeAt(replaceStart);
 
     if (charCode === 0x0bcd && replaceStart > 0) {
-      // pulli + consonant before it
-      replaceStart--;
       const newValue =
-        value.substring(0, replaceStart) + replacement + '\u0BCD' + value.substring(replaceEnd);
-      this.applyReplacement(newValue, replaceStart + 2);
+        value.substring(0, replaceStart - 1) + replacement + '\u0BCD' + value.substring(replaceEnd);
+      this.applyReplacement(newValue, replaceStart + 1);
     } else {
-      // Just the base consonant (with vowel sign after potentially)
       const newValue = value.substring(0, replaceStart) + replacement + value.substring(replaceEnd);
       this.applyReplacement(newValue, replaceStart + 1);
     }
@@ -238,6 +269,10 @@ export class TypingPageComponent {
     } else {
       this.suggestionIndex.set((current + 1) % len);
     }
+  }
+
+  togglePause(): void {
+    this.paused.update((v) => !v);
   }
 
   clear(): void {
