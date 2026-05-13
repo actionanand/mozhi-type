@@ -85,7 +85,7 @@ interface CharMapping {
       type="button"
       [attr.aria-expanded]="expanded()"
       aria-controls="keyboard-ref-panel"
-      (click)="expanded.update((v) => !v)"
+      (click)="toggleExpanded()"
     >
       {{ expanded() ? '▼' : '▶' }} Keyboard Reference
     </button>
@@ -122,6 +122,30 @@ interface CharMapping {
           </div>
         </div>
         <div class="section">
+          <h3>Grantha / வடமொழி</h3>
+          <div class="grid">
+            @for (g of granthaConsonants; track g.english) {
+              <div class="char-card">
+                <span class="tamil">{{ g.tamil }}</span>
+                <span class="arrow">←</span>
+                <span class="english">{{ g.english }}</span>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="section">
+          <h3>Tamil Numbers (தமிழ் எண்கள்)</h3>
+          <div class="grid">
+            @for (num of tamilNumbers; track num.english) {
+              <div class="char-card">
+                <span class="tamil">{{ num.tamil }}</span>
+                <span class="arrow">←</span>
+                <span class="english">{{ num.english }}</span>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="section">
           <h3>Examples</h3>
           <div class="grid">
             @for (e of examples; track e.english) {
@@ -140,49 +164,76 @@ interface CharMapping {
 export class KeyboardReferenceComponent {
   protected readonly expanded = signal(false);
 
+  toggleExpanded(): void {
+    this.expanded.update((v) => !v);
+  }
+
   readonly vowels: CharMapping[] = [
     { english: 'a', tamil: 'அ' },
-    { english: 'aa', tamil: 'ஆ' },
+    { english: 'aa / A', tamil: 'ஆ' },
     { english: 'i', tamil: 'இ' },
-    { english: 'ee', tamil: 'ஈ' },
+    { english: 'ee / I', tamil: 'ஈ' },
     { english: 'u', tamil: 'உ' },
-    { english: 'oo', tamil: 'ஊ' },
+    { english: 'oo / U', tamil: 'ஊ' },
     { english: 'e', tamil: 'எ' },
+    { english: 'E', tamil: 'ஏ' },
     { english: 'ai', tamil: 'ஐ' },
     { english: 'o', tamil: 'ஒ' },
-    { english: 'ou', tamil: 'ஓ' },
+    { english: 'O / ou', tamil: 'ஓ' },
     { english: 'au', tamil: 'ஔ' },
+    { english: 'aq', tamil: 'ஃ' },
   ];
 
   readonly consonants: CharMapping[] = [
-    { english: 'k', tamil: 'க்' },
+    { english: 'k / g', tamil: 'க்' },
     { english: 'ng', tamil: 'ங்' },
-    { english: 'ch', tamil: 'ச்' },
+    { english: 'ch / s', tamil: 'ச்' },
     { english: 'nj', tamil: 'ஞ்' },
-    { english: 't', tamil: 'ட்' },
+    { english: 't / T', tamil: 'ட்' },
+    { english: 'N', tamil: 'ண்' },
     { english: 'th', tamil: 'த்' },
-    { english: 'n', tamil: 'ன்' },
-    { english: 'p', tamil: 'ப்' },
+    { english: 'nh', tamil: 'ந்' },
+    { english: 'p / b', tamil: 'ப்' },
     { english: 'm', tamil: 'ம்' },
     { english: 'y', tamil: 'ய்' },
     { english: 'r', tamil: 'ர்' },
     { english: 'l', tamil: 'ல்' },
-    { english: 'v', tamil: 'வ்' },
-    { english: 'zh', tamil: 'ழ்' },
+    { english: 'v / w', tamil: 'வ்' },
+    { english: 'zh / z', tamil: 'ழ்' },
+    { english: 'L', tamil: 'ள்' },
+    { english: 'R / tr', tamil: 'ற்' },
+    { english: 'n', tamil: 'ன்' },
+  ];
+
+  readonly granthaConsonants: CharMapping[] = [
+    { english: 'j / J', tamil: 'ஜ்' },
     { english: 'sh', tamil: 'ஷ்' },
-    { english: 's', tamil: 'ச்' },
-    { english: 'h', tamil: 'ஹ்' },
-    { english: 'tr', tamil: 'ற்' },
+    { english: 'S', tamil: 'ஸ்' },
+    { english: 'h / H', tamil: 'ஹ்' },
+    { english: 'ksh / x', tamil: 'க்ஷ்' },
+    { english: 'sri', tamil: 'ஸ்ரீ' },
+  ];
+
+  readonly tamilNumbers: CharMapping[] = [
+    { english: '1', tamil: '௧' },
+    { english: '2', tamil: '௨' },
+    { english: '3', tamil: '௩' },
+    { english: '4', tamil: '௪' },
+    { english: '5', tamil: '௫' },
+    { english: '6', tamil: '௬' },
+    { english: '7', tamil: '௭' },
+    { english: '8', tamil: '௮' },
+    { english: '9', tamil: '௯' },
   ];
 
   readonly examples: CharMapping[] = [
-    { english: 'ka', tamil: 'க' },
-    { english: 'ki', tamil: 'கி' },
-    { english: 'ku', tamil: 'கு' },
-    { english: 'kaa', tamil: 'கா' },
     { english: 'kal', tamil: 'கல்' },
     { english: 'kaal', tamil: 'கால்' },
-    { english: 'tamil', tamil: 'தமில்' },
-    { english: 'vanakkam', tamil: 'வனக்கம்' },
+    { english: 'tamizh', tamil: 'தமிழ்' },
+    { english: 'vaNakkam', tamil: 'வணக்கம்' },
+    { english: 'nandri', tamil: 'னன்த்ரி' },
+    { english: 'Na', tamil: 'ண' },
+    { english: 'nha', tamil: 'ந' },
+    { english: 'pEsu', tamil: 'பேசு' },
   ];
 }

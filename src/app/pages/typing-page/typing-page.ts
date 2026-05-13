@@ -88,17 +88,26 @@ import { TransliterationService } from '../../core/transliteration.service';
       <h1>மொழி Type</h1>
       <p class="subtitle">Tamil Phonetic Typing — Type in English, get Tamil</p>
       <span class="hint">Press <kbd>Space</kbd> or <kbd>Enter</kbd> to convert</span>
+      <span class="hint"><kbd>Backspace</kbd> on Tamil → similar letter suggestions</span>
+      <span class="hint"
+        >Uppercase: <kbd>N</kbd>=ண <kbd>L</kbd>=ள <kbd>R</kbd>=ற <kbd>E</kbd>=ஏ</span
+      >
     </header>
 
     <div class="editor-section">
       <app-transliteration-input
         label="Type in English (Transliteration)"
-        placeholder="e.g., vanakkam ulagam..."
+        placeholder="e.g., vaNakkam ulagam..."
         inputId="main-input"
         [value]="displayText()"
         [preview]="currentWordPreview()"
+        [suggestions]="suggestions()"
+        [suggestionIndex]="suggestionIndex()"
         (inputChange)="onInput($event)"
         (wordCommit)="onWordCommit($event)"
+        (backspaceAtTamil)="onBackspaceAtTamil($event)"
+        (suggestionSelected)="onSuggestionSelected($event)"
+        (suggestionNavigate)="onSuggestionNavigate($event)"
       />
     </div>
 
@@ -128,10 +137,12 @@ export class TypingPageComponent {
 
   protected readonly displayText = signal('');
   protected readonly tamilOutput = signal('');
+  protected readonly suggestions = signal<string[]>([]);
+  protected readonly suggestionIndex = signal(0);
+  private suggestionCursorPos = 0;
 
   protected readonly currentWordPreview = computed(() => {
     const text = this.displayText();
-    // Find the current word being typed (last word if no space at end)
     const lastSpaceIdx = Math.max(text.lastIndexOf(' '), text.lastIndexOf('\n'));
     const currentWord = text.substring(lastSpaceIdx + 1);
     if (!currentWord || !/[a-zA-Z]/.test(currentWord)) return '';
@@ -140,12 +151,15 @@ export class TypingPageComponent {
 
   onInput(value: string): void {
     this.displayText.set(value);
+    // Dismiss suggestions on any normal input
+    if (this.suggestions().length) {
+      this.suggestions.set([]);
+    }
   }
 
   onWordCommit(event: { value: string; cursorPos: number }): void {
     const { value, cursorPos } = event;
 
-    // Find the word boundary before cursor
     let wordStart = cursorPos - 1;
     while (wordStart >= 0 && value[wordStart] !== ' ' && value[wordStart] !== '\n') {
       wordStart--;
@@ -159,27 +173,92 @@ export class TypingPageComponent {
     const newValue = value.substring(0, wordStart) + tamilWord + value.substring(cursorPos);
 
     this.displayText.set(newValue);
-    // Update the textarea directly and set cursor position
     const comp = this.inputRef();
     comp.setValue(newValue);
     const newCursorPos = wordStart + tamilWord.length;
     comp.setCursorPosition(newCursorPos);
 
-    // Update full Tamil output
     this.tamilOutput.set(this.buildTamilOutput(newValue));
+  }
+
+  onBackspaceAtTamil(event: { value: string; cursorPos: number }): void {
+    const { value, cursorPos } = event;
+    // Look at the base consonant before cursor (skip pulli if present)
+    let checkPos = cursorPos - 1;
+    const charCode = value.charCodeAt(checkPos);
+
+    // If it's a pulli (0BCD), check the char before it
+    let baseChar: string;
+    if (charCode === 0x0bcd && checkPos > 0) {
+      baseChar = value[checkPos - 1];
+    } else {
+      baseChar = value[checkPos];
+    }
+
+    const similar = this.transliterationService.getSimilarChars(baseChar);
+    if (similar.length > 0) {
+      this.suggestions.set(similar);
+      this.suggestionIndex.set(0);
+      this.suggestionCursorPos = cursorPos;
+    }
+  }
+
+  onSuggestionSelected(replacement: string): void {
+    const value = this.displayText();
+    const pos = this.suggestionCursorPos;
+
+    // Find the base consonant position to replace
+    let replaceStart = pos - 1;
+    let replaceEnd = pos;
+    const charCode = value.charCodeAt(replaceStart);
+
+    if (charCode === 0x0bcd && replaceStart > 0) {
+      // pulli + consonant before it
+      replaceStart--;
+      const newValue =
+        value.substring(0, replaceStart) + replacement + '\u0BCD' + value.substring(replaceEnd);
+      this.applyReplacement(newValue, replaceStart + 2);
+    } else {
+      // Just the base consonant (with vowel sign after potentially)
+      const newValue = value.substring(0, replaceStart) + replacement + value.substring(replaceEnd);
+      this.applyReplacement(newValue, replaceStart + 1);
+    }
+  }
+
+  onSuggestionNavigate(direction: 'left' | 'right' | 'dismiss'): void {
+    if (direction === 'dismiss') {
+      this.suggestions.set([]);
+      return;
+    }
+    const len = this.suggestions().length;
+    if (len === 0) return;
+    const current = this.suggestionIndex();
+    if (direction === 'left') {
+      this.suggestionIndex.set((current - 1 + len) % len);
+    } else {
+      this.suggestionIndex.set((current + 1) % len);
+    }
   }
 
   clear(): void {
     this.displayText.set('');
     this.tamilOutput.set('');
+    this.suggestions.set([]);
     const comp = this.inputRef();
     comp.setValue('');
     comp.setCursorPosition(0);
   }
 
+  private applyReplacement(newValue: string, newCursorPos: number): void {
+    this.displayText.set(newValue);
+    this.tamilOutput.set(this.buildTamilOutput(newValue));
+    this.suggestions.set([]);
+    const comp = this.inputRef();
+    comp.setValue(newValue);
+    comp.setCursorPosition(newCursorPos);
+  }
+
   private buildTamilOutput(text: string): string {
-    // The text already has converted Tamil words mixed with any remaining English
-    // Convert any remaining English segments
     return this.transliterationService.transliterate(text);
   }
 }

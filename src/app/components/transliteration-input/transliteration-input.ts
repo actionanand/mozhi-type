@@ -3,14 +3,15 @@ import {
   ChangeDetectionStrategy,
   input,
   output,
-  signal,
   ElementRef,
   viewChild,
 } from '@angular/core';
+import { SuggestionPopupComponent } from '../suggestion-popup/suggestion-popup';
 
 @Component({
   selector: 'app-transliteration-input',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [SuggestionPopupComponent],
   host: { class: 'transliteration-input' },
   styles: `
     :host {
@@ -53,6 +54,11 @@ import {
       pointer-events: none;
       font-family: 'Noto Sans Tamil', 'Latha', sans-serif;
     }
+    .suggestion-anchor {
+      position: absolute;
+      bottom: 3rem;
+      left: 1rem;
+    }
     label {
       display: block;
       font-weight: 600;
@@ -76,6 +82,13 @@ import {
       @if (preview()) {
         <span class="preview" aria-hidden="true">{{ preview() }}</span>
       }
+      <div class="suggestion-anchor">
+        <app-suggestion-popup
+          [suggestions]="suggestions()"
+          [activeIndex]="suggestionIndex()"
+          (select)="onSuggestionSelect($event)"
+        />
+      </div>
     </div>
   `,
 })
@@ -85,9 +98,14 @@ export class TransliterationInputComponent {
   readonly inputId = input('transliteration-input');
   readonly value = input('');
   readonly preview = input('');
+  readonly suggestions = input<string[]>([]);
+  readonly suggestionIndex = input(0);
 
   readonly inputChange = output<string>();
   readonly wordCommit = output<{ value: string; cursorPos: number }>();
+  readonly backspaceAtTamil = output<{ value: string; cursorPos: number }>();
+  readonly suggestionSelected = output<string>();
+  readonly suggestionNavigate = output<'left' | 'right' | 'dismiss'>();
 
   readonly textareaRef = viewChild.required<ElementRef<HTMLTextAreaElement>>('textareaRef');
 
@@ -97,10 +115,53 @@ export class TransliterationInputComponent {
   }
 
   onKeyDown(event: KeyboardEvent): void {
+    const textarea = this.textareaRef().nativeElement;
+    const hasSuggestions = this.suggestions().length > 0;
+
+    if (hasSuggestions) {
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        this.suggestionNavigate.emit('left');
+        return;
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        this.suggestionNavigate.emit('right');
+        return;
+      }
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        const selected = this.suggestions()[this.suggestionIndex()];
+        if (selected) this.suggestionSelected.emit(selected);
+        return;
+      }
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        this.suggestionNavigate.emit('dismiss');
+        return;
+      }
+    }
+
     if (event.key === ' ' || event.key === 'Enter') {
-      const textarea = this.textareaRef().nativeElement;
       this.wordCommit.emit({ value: textarea.value, cursorPos: textarea.selectionStart });
     }
+
+    if (event.key === 'Backspace') {
+      const pos = textarea.selectionStart;
+      if (pos > 0 && textarea.selectionStart === textarea.selectionEnd) {
+        const charBefore = textarea.value[pos - 1];
+        // Check if it's a Tamil character (Unicode range 0B80-0BFF)
+        const code = charBefore.charCodeAt(0);
+        if (code >= 0x0b80 && code <= 0x0bff) {
+          this.backspaceAtTamil.emit({ value: textarea.value, cursorPos: pos });
+        }
+      }
+    }
+  }
+
+  onSuggestionSelect(char: string): void {
+    this.suggestionSelected.emit(char);
+    this.textareaRef().nativeElement.focus();
   }
 
   setCursorPosition(pos: number): void {

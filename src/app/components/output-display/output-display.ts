@@ -25,7 +25,7 @@ import { Component, ChangeDetectionStrategy, input } from '@angular/core';
       content: attr(data-placeholder);
       color: #9ca3af;
     }
-    label {
+    .label-text {
       display: block;
       font-weight: 600;
       margin-bottom: 0.5rem;
@@ -34,7 +34,7 @@ import { Component, ChangeDetectionStrategy, input } from '@angular/core';
     }
   `,
   template: `
-    <label>{{ label() }}</label>
+    <span class="label-text">{{ label() }}</span>
     <div
       class="output-box"
       role="region"
