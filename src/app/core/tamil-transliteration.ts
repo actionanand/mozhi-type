@@ -221,7 +221,7 @@ export function toTamilNumeral(input: string): string {
  * - each group: ௲௱௱
  * - base: ௲
  */
-function powerChain(n: number): string {
+export function powerChain(n: number): string {
   if (n === 0) return '';
   if (n === 1) return PATHU;
   if (n === 2) return NOORU;
@@ -415,4 +415,80 @@ export function transliterate(input: string): string {
  */
 export function toTamilNumbers(input: string): string {
   return input.replace(/[\d,]+/g, (match) => toTamilNumeral(match));
+}
+
+/** Tamil digit characters → Arabic digit values */
+const TAMIL_DIGIT_VALUES: Record<string, number> = {
+  '௧': 1,
+  '௨': 2,
+  '௩': 3,
+  '௪': 4,
+  '௫': 5,
+  '௬': 6,
+  '௭': 7,
+  '௮': 8,
+  '௯': 9,
+};
+
+/**
+ * Convert a Tamil numeral string back to an Arabic number string.
+ *
+ * Parses the multiplicative chain notation left-to-right:
+ * - Optionally consumes a Tamil digit (coefficient)
+ * - Greedily matches the longest power chain
+ * - Multiplies: coefficient × powerChain value
+ * - Accumulates into total
+ * - A lone Tamil digit with no following chain is the units value
+ *
+ * Examples: ௱௫௰௬ → "156", ௰௱௲ → "1000000"
+ */
+export function fromTamilNumeral(input: string): string {
+  if (!input.trim()) return '';
+
+  // Precompute all power chains up to 10^20, sorted longest-first for greedy matching
+  const chainLookup: [string, bigint][] = [];
+  for (let n = 1; n <= 20; n++) {
+    chainLookup.push([powerChain(n), BigInt(10) ** BigInt(n)]);
+  }
+  chainLookup.sort((a, b) => [...b[0]].length - [...a[0]].length);
+
+  const chars = [...input]; // Unicode-aware character array
+  let total = BigInt(0);
+  let pos = 0;
+
+  while (pos < chars.length) {
+    // Optionally consume a Tamil digit as coefficient
+    let coeff = BigInt(1);
+    let consumedDigit = false;
+    const digitVal = TAMIL_DIGIT_VALUES[chars[pos]];
+    if (digitVal !== undefined) {
+      coeff = BigInt(digitVal);
+      consumedDigit = true;
+      pos++;
+    }
+
+    // Greedily match the longest power chain starting at pos
+    const remaining = chars.slice(pos).join('');
+    let matchedChain = false;
+    for (const [chain, value] of chainLookup) {
+      if (remaining.startsWith(chain)) {
+        total += coeff * value;
+        pos += [...chain].length;
+        matchedChain = true;
+        break;
+      }
+    }
+
+    if (!matchedChain) {
+      if (consumedDigit) {
+        // Digit with no following chain → units position
+        total += coeff;
+      } else {
+        // Unknown character — skip
+        pos++;
+      }
+    }
+  }
+
+  return total === BigInt(0) ? '0' : total.toString();
 }

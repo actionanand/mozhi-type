@@ -4,6 +4,7 @@ import {
   transliterateWord,
   getSimilarChars,
   toTamilNumbers,
+  fromTamilNumeral,
 } from './tamil-transliteration';
 
 @Injectable({ providedIn: 'root' })
@@ -22,5 +23,9 @@ export class TransliterationService {
 
   toTamilNumbers(input: string): string {
     return toTamilNumbers(input);
+  }
+
+  fromTamilNumeral(input: string): string {
+    return fromTamilNumeral(input);
   }
 }
