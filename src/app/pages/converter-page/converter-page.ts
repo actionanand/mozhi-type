@@ -48,7 +48,8 @@ function formatWithCommas(numStr: string): string {
       padding: 1.25rem;
       margin-bottom: 1.25rem;
     }
-    label {
+    label,
+    .result-label {
       display: block;
       font-size: 0.8125rem;
       font-weight: 600;
@@ -207,7 +208,7 @@ function formatWithCommas(numStr: string): string {
     </div>
 
     <div class="card">
-      <label>Arabic Number Output</label>
+      <p class="result-label">Arabic Number Output</p>
       <div class="result-box" aria-live="polite" aria-atomic="true">
         <div class="result-content">
           @if (arabicResult()) {
