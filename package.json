@@ -46,7 +46,7 @@
     "@angular/build": "^21.2.11",
     "@angular/cli": "^21.2.11",
     "@angular/compiler-cli": "^21.2.12",
-    "angular-eslint": "21.1.0",
+    "angular-eslint": "21.4.0",
     "eslint": "^9.39.1",
     "husky": "^9.1.7",
     "jsdom": "^27.1.0",
