@@ -61,12 +61,44 @@ interface CharMapping {
       color: #92400e;
       font-family: 'Noto Sans Tamil', 'Latha', sans-serif;
     }
+    .note-box {
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 0.5rem;
+      font-size: 0.8125rem;
+      line-height: 1.7;
+      color: #0c4a6e;
+    }
+    .note-box h4 {
+      margin: 0 0 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    .note-box ul {
+      margin: 0.25rem 0;
+      padding-left: 1.25rem;
+    }
+    .note-box li {
+      margin-bottom: 0.125rem;
+    }
+    .note-tamil {
+      font-family: 'Noto Sans Tamil', 'Latha', sans-serif;
+      font-weight: 600;
+      color: #6366f1;
+    }
     .section + .section {
       margin-top: 1rem;
     }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 0.375rem;
+    }
+    .grid-wide {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
       gap: 0.375rem;
     }
     .char-card {
@@ -164,15 +196,47 @@ interface CharMapping {
               </div>
             }
           </div>
-          <h3 class="sub-heading">Number Examples (எண் எடுத்துக்காட்டுகள்)</h3>
-          <div class="grid">
-            @for (ne of numberExamples; track ne.english) {
-              <div class="char-card">
-                <span class="tamil">{{ ne.tamil }}</span>
-                <span class="arrow">←</span>
-                <span class="english">{{ ne.english }}</span>
-              </div>
-            }
+          <div class="note-box">
+            <h4>Tamil Number System (தமிழ் எண் முறை)</h4>
+            <p>
+              Tamil uses a <strong>multiplicative</strong> system with three place markers:
+              <span class="note-tamil">௰</span> = 10, <span class="note-tamil">௱</span> = 100,
+              <span class="note-tamil">௲</span> = 1000. Place markers multiply to form higher
+              powers. There is no Tamil zero — 0 stays as 0.
+            </p>
+            <ul>
+              <li>
+                <span class="note-tamil">௰</span> = 10 &nbsp;|&nbsp;
+                <span class="note-tamil">௰௧</span> = 11 &nbsp;|&nbsp;
+                <span class="note-tamil">௨௰</span> = 20
+              </li>
+              <li>
+                <span class="note-tamil">௱</span> = 100 &nbsp;|&nbsp;
+                <span class="note-tamil">௱௨௰௬</span> = 126 &nbsp;|&nbsp;
+                <span class="note-tamil">௫௱</span> = 500
+              </li>
+              <li>
+                <span class="note-tamil">௲</span> = 1,000 &nbsp;|&nbsp;
+                <span class="note-tamil">௨௲</span> = 2,000 &nbsp;|&nbsp;
+                <span class="note-tamil">௨௲௨௰௬</span> = 2,026
+              </li>
+              <li><span class="note-tamil">௰௲</span> = 10 × 1000 = 10,000</li>
+              <li><span class="note-tamil">௱௲</span> = 100 × 1000 = 1,00,000 (lakh)</li>
+              <li><span class="note-tamil">௰௱௲</span> = 10 × 100 × 1000 = 10,00,000 (10 lakhs)</li>
+              <li><span class="note-tamil">௱௱௲</span> = 100 × 100 × 1000 = 1,00,00,000 (crore)</li>
+              <li><span class="note-tamil">௰௱௱௲</span> = 10 × 100 × 100 × 1000 = 10 crore</li>
+              <li><span class="note-tamil">௱௱௱௲</span> = 100³ × 1000 = 100 crore</li>
+              <li><span class="note-tamil">௲௱௱௲</span> = 1000 × 100² × 1000 = 1,000 crore</li>
+              <li><span class="note-tamil">௰௲௱௱௲</span> = 10,000 crore</li>
+              <li><span class="note-tamil">௱௲௱௱௲</span> = 1 lakh crore</li>
+              <li><span class="note-tamil">௱௱௲௱௱௲</span> = 1 crore crore</li>
+            </ul>
+            <p>
+              <strong>Rule:</strong> Between any two <span class="note-tamil">௲</span> markers,
+              exactly two <span class="note-tamil">௱</span> markers appear. Type numbers with or
+              without commas — e.g., <code>1,000,000</code> or <code>1000000</code> →
+              <span class="note-tamil">௰௱௲</span>
+            </p>
           </div>
         </div>
         <div class="section">
@@ -189,7 +253,7 @@ interface CharMapping {
         </div>
         <div class="section">
           <h3>Examples</h3>
-          <div class="grid">
+          <div class="grid-wide">
             @for (e of examples; track e.english) {
               <div class="char-card">
                 <span class="tamil">{{ e.tamil }}</span>
@@ -223,7 +287,7 @@ export class KeyboardReferenceComponent {
     { english: 'o', tamil: 'ஒ' },
     { english: 'O / ou', tamil: 'ஓ' },
     { english: 'au', tamil: 'ஔ' },
-    { english: 'aq', tamil: 'ஃ' },
+    { english: 'q', tamil: 'ஃ' },
   ];
 
   readonly consonants: CharMapping[] = [
@@ -267,22 +331,6 @@ export class KeyboardReferenceComponent {
     { english: '7', tamil: '௭' },
     { english: '8', tamil: '௮' },
     { english: '9', tamil: '௯' },
-    { english: '10', tamil: '௰' },
-    { english: '100', tamil: '௱' },
-    { english: '1000', tamil: '௲' },
-  ];
-
-  readonly numberExamples: CharMapping[] = [
-    { english: '11', tamil: '௰௧' },
-    { english: '20', tamil: '௨௰' },
-    { english: '156', tamil: '௱௫௰௬' },
-    { english: '500', tamil: '௫௱' },
-    { english: '1001', tamil: '௲௧' },
-    { english: '2026', tamil: '௨௲௨௰௬' },
-    { english: '8000', tamil: '௮௲' },
-    { english: '10000', tamil: '௰௲' },
-    { english: '100000', tamil: '௱௲' },
-    { english: '10000000', tamil: '௱௱௲' },
   ];
 
   readonly specialSymbols: CharMapping[] = [

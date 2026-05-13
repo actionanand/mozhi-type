@@ -156,15 +156,23 @@ const AAYIRAM = '௲'; // 1000
 /**
  * Convert a number (as string, commas allowed) to Tamil numeral notation.
  *
- * Tamil numeral system:
- * - ௧-௯ = 1-9
- * - ௰ = 10, ௱ = 100, ௲ = 1000
- * - Numbers compose as: digit + place-marker
- *   e.g., ௨௰ = 20, ௫௱ = 500, ௮௲ = 8000
- * - Compound: ௱௫௰௬ = 156 (100 + 50 + 6)
- * - Higher orders multiply ௲:
- *   ௰௲ = 10,000; ௱௲ = 1,00,000; ௲௲ is not used;
- *   instead powers stack: ௱௱௲ = 1,00,00,000 (crore)
+ * Tamil numeral system (multiplicative positional):
+ * - ௧-௯ = 1-9 (digits)
+ * - ௰ = 10, ௱ = 100, ௲ = 1000 (place markers)
+ * - Each digit is written with its place-marker chain: ௨௰ = 20, ௫௱ = 500
+ * - Compound: ௱௫௰௬ = 100 + 50 + 6 = 156
+ *
+ * For powers of 10 beyond 1000, place markers MULTIPLY:
+ * - ௰௲ = 10×1000 = 10,000
+ * - ௱௲ = 100×1000 = 1,00,000
+ * - ௰௱௲ = 10×100×1000 = 10,00,000 (10 lakhs)
+ * - ௱௱௲ = 100×100×1000 = 1,00,00,000 (crore)
+ * - ௲௱௱௲ = 1000×100×100×1000 = 10,00,00,00,000
+ *
+ * The power-of-10 decomposition rule:
+ *   n = leftover + (groups × 7) + 3
+ *   where leftover ∈ {0..6} maps to prefix tokens,
+ *   each group of 7 adds ௲௱௱, and the base ௲ ends.
  *
  * 0 has no Tamil numeral; it stays as 0.
  */
@@ -180,74 +188,70 @@ export function toTamilNumeral(input: string): string {
 
   if (num === '0') return '0';
 
-  const n = BigInt(num);
-  return convertChunk(n);
+  let result = '';
+  const digits = num.split('');
+
+  // Process each digit from most significant to least
+  for (let i = 0; i < digits.length; i++) {
+    const d = parseInt(digits[i], 10);
+    if (d === 0) continue;
+
+    const position = digits.length - 1 - i; // power of 10
+
+    if (position === 0) {
+      // Units: just the digit
+      result += TAMIL_DIGITS[d.toString()] ?? '';
+    } else {
+      // Digit (omit if 1) + power chain
+      if (d > 1) {
+        result += TAMIL_DIGITS[d.toString()] ?? '';
+      }
+      result += powerChain(position);
+    }
+  }
+
+  return result;
 }
 
 /**
- * Recursively convert a number to Tamil numeral string.
+ * Generate the Tamil place-marker chain for 10^n.
+ *
+ * Decomposition: n = leftover + (groups × 7) + 3
+ * - leftover prefix: 0→'', 1→௰, 2→௱, 3→௰௱, 4→௱௱, 5→௰௱௱, 6→௱௱௱
+ * - each group: ௲௱௱
+ * - base: ௲
  */
-function convertChunk(n: bigint): string {
-  if (n === 0n) return '';
+function powerChain(n: number): string {
+  if (n === 0) return '';
+  if (n === 1) return PATHU;
+  if (n === 2) return NOORU;
 
-  // >= 1000: split into thousands-multiplier and remainder
-  if (n >= 1000n) {
-    const thousandsMultiplier = n / 1000n;
-    const remainder = n % 1000n;
-    let result = '';
+  // n >= 3: decompose as leftover + groups×7 + 3
+  const r = n - 3;
+  const groups = Math.floor(r / 7);
+  const left = r % 7;
 
-    if (thousandsMultiplier === 1n) {
-      result = AAYIRAM;
-    } else if (thousandsMultiplier < 1000n) {
-      // e.g., 8000 -> ௮௲, 10000 -> ௰௲, 156000 -> ௱௫௰௬௲
-      result = convertChunk(thousandsMultiplier) + AAYIRAM;
-    } else {
-      // For very large numbers, recursively handle the multiplier
-      // e.g., 10,000,000 = 10000 × 1000 -> ௰௲ as multiplier then ௲
-      // This naturally produces stacked ௲ markers
-      result = convertChunk(thousandsMultiplier) + AAYIRAM;
-    }
+  const LEFTOVER_MAP = [
+    '',
+    PATHU,
+    NOORU,
+    PATHU + NOORU,
+    NOORU + NOORU,
+    PATHU + NOORU + NOORU,
+    NOORU + NOORU + NOORU,
+  ];
 
-    if (remainder > 0n) {
-      result += convertChunk(remainder);
-    }
-    return result;
+  let result = LEFTOVER_MAP[left];
+
+  // Each group adds ௲௱௱
+  for (let i = 0; i < groups; i++) {
+    result += AAYIRAM + NOORU + NOORU;
   }
 
-  // 100-999
-  if (n >= 100n) {
-    const hundreds = n / 100n;
-    const remainder = n % 100n;
-    let result = '';
-    if (hundreds === 1n) {
-      result = NOORU;
-    } else {
-      result = (TAMIL_DIGITS[hundreds.toString()] ?? '') + NOORU;
-    }
-    if (remainder > 0n) {
-      result += convertChunk(remainder);
-    }
-    return result;
-  }
+  // Base ௲
+  result += AAYIRAM;
 
-  // 10-99
-  if (n >= 10n) {
-    const tens = n / 10n;
-    const remainder = n % 10n;
-    let result = '';
-    if (tens === 1n) {
-      result = PATHU;
-    } else {
-      result = (TAMIL_DIGITS[tens.toString()] ?? '') + PATHU;
-    }
-    if (remainder > 0n) {
-      result += TAMIL_DIGITS[remainder.toString()] ?? '';
-    }
-    return result;
-  }
-
-  // 1-9
-  return TAMIL_DIGITS[n.toString()] ?? '';
+  return result;
 }
 
 // Special symbols accessible via Q-prefix shortcuts
