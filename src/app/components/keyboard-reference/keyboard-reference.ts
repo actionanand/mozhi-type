@@ -47,6 +47,20 @@ interface CharMapping {
       font-weight: 600;
       color: #374151;
     }
+    .sub-heading {
+      margin-top: 0.75rem;
+    }
+    .mnemonic {
+      margin: 0 0 0.75rem;
+      padding: 0.625rem 0.75rem;
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      border-radius: 0.5rem;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      color: #92400e;
+      font-family: 'Noto Sans Tamil', 'Latha', sans-serif;
+    }
     .section + .section {
       margin-top: 1rem;
     }
@@ -137,12 +151,26 @@ interface CharMapping {
         </div>
         <div class="section">
           <h3>Tamil Numbers (தமிழ் எண்கள்)</h3>
+          <p class="mnemonic">
+            நினைவு சூத்திரம்: "கடலை உருண்டையை நன்கு சமைத்து ருசித்து சாப்பிடு என்று அம்மா கூறினார்"
+            — முதல் எழுத்துக்கள்: க(௧) உ(௨) ந(௩) ச(௪) ரு(௫) சா(௬) எ(௭) அ(௮) கூ(௯)
+          </p>
           <div class="grid">
             @for (num of tamilNumbers; track num.english) {
               <div class="char-card">
                 <span class="tamil">{{ num.tamil }}</span>
                 <span class="arrow">←</span>
                 <span class="english">{{ num.english }}</span>
+              </div>
+            }
+          </div>
+          <h3 class="sub-heading">Number Examples (எண் எடுத்துக்காட்டுகள்)</h3>
+          <div class="grid">
+            @for (ne of numberExamples; track ne.english) {
+              <div class="char-card">
+                <span class="tamil">{{ ne.tamil }}</span>
+                <span class="arrow">←</span>
+                <span class="english">{{ ne.english }}</span>
               </div>
             }
           </div>
@@ -239,6 +267,22 @@ export class KeyboardReferenceComponent {
     { english: '7', tamil: '௭' },
     { english: '8', tamil: '௮' },
     { english: '9', tamil: '௯' },
+    { english: '10', tamil: '௰' },
+    { english: '100', tamil: '௱' },
+    { english: '1000', tamil: '௲' },
+  ];
+
+  readonly numberExamples: CharMapping[] = [
+    { english: '11', tamil: '௰௧' },
+    { english: '20', tamil: '௨௰' },
+    { english: '156', tamil: '௱௫௰௬' },
+    { english: '500', tamil: '௫௱' },
+    { english: '1001', tamil: '௲௧' },
+    { english: '2026', tamil: '௨௲௨௰௬' },
+    { english: '8000', tamil: '௮௲' },
+    { english: '10000', tamil: '௰௲' },
+    { english: '100000', tamil: '௱௲' },
+    { english: '10000000', tamil: '௱௱௲' },
   ];
 
   readonly specialSymbols: CharMapping[] = [

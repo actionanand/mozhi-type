@@ -135,9 +135,8 @@ const CONSONANTS: [string, string][] = [
   ['z', 'ழ'],
 ];
 
-// Tamil numerals
-const TAMIL_NUMBERS: Record<string, string> = {
-  '0': '0', // Tamil has no zero
+// Tamil numerals - basic digits
+const TAMIL_DIGITS: Record<string, string> = {
   '1': '௧',
   '2': '௨',
   '3': '௩',
@@ -148,6 +147,108 @@ const TAMIL_NUMBERS: Record<string, string> = {
   '8': '௮',
   '9': '௯',
 };
+
+// Tamil place markers
+const PATHU = '௰'; // 10
+const NOORU = '௱'; // 100
+const AAYIRAM = '௲'; // 1000
+
+/**
+ * Convert a number (as string, commas allowed) to Tamil numeral notation.
+ *
+ * Tamil numeral system:
+ * - ௧-௯ = 1-9
+ * - ௰ = 10, ௱ = 100, ௲ = 1000
+ * - Numbers compose as: digit + place-marker
+ *   e.g., ௨௰ = 20, ௫௱ = 500, ௮௲ = 8000
+ * - Compound: ௱௫௰௬ = 156 (100 + 50 + 6)
+ * - Higher orders multiply ௲:
+ *   ௰௲ = 10,000; ௱௲ = 1,00,000; ௲௲ is not used;
+ *   instead powers stack: ௱௱௲ = 1,00,00,000 (crore)
+ *
+ * 0 has no Tamil numeral; it stays as 0.
+ */
+export function toTamilNumeral(input: string): string {
+  // Strip commas
+  const cleaned = input.replace(/,/g, '');
+
+  // Validate: must be all digits
+  if (!/^\d+$/.test(cleaned)) return input;
+
+  // Remove leading zeros, keep at least one char
+  const num = cleaned.replace(/^0+/, '') || '0';
+
+  if (num === '0') return '0';
+
+  const n = BigInt(num);
+  return convertChunk(n);
+}
+
+/**
+ * Recursively convert a number to Tamil numeral string.
+ */
+function convertChunk(n: bigint): string {
+  if (n === 0n) return '';
+
+  // >= 1000: split into thousands-multiplier and remainder
+  if (n >= 1000n) {
+    const thousandsMultiplier = n / 1000n;
+    const remainder = n % 1000n;
+    let result = '';
+
+    if (thousandsMultiplier === 1n) {
+      result = AAYIRAM;
+    } else if (thousandsMultiplier < 1000n) {
+      // e.g., 8000 -> ௮௲, 10000 -> ௰௲, 156000 -> ௱௫௰௬௲
+      result = convertChunk(thousandsMultiplier) + AAYIRAM;
+    } else {
+      // For very large numbers, recursively handle the multiplier
+      // e.g., 10,000,000 = 10000 × 1000 -> ௰௲ as multiplier then ௲
+      // This naturally produces stacked ௲ markers
+      result = convertChunk(thousandsMultiplier) + AAYIRAM;
+    }
+
+    if (remainder > 0n) {
+      result += convertChunk(remainder);
+    }
+    return result;
+  }
+
+  // 100-999
+  if (n >= 100n) {
+    const hundreds = n / 100n;
+    const remainder = n % 100n;
+    let result = '';
+    if (hundreds === 1n) {
+      result = NOORU;
+    } else {
+      result = (TAMIL_DIGITS[hundreds.toString()] ?? '') + NOORU;
+    }
+    if (remainder > 0n) {
+      result += convertChunk(remainder);
+    }
+    return result;
+  }
+
+  // 10-99
+  if (n >= 10n) {
+    const tens = n / 10n;
+    const remainder = n % 10n;
+    let result = '';
+    if (tens === 1n) {
+      result = PATHU;
+    } else {
+      result = (TAMIL_DIGITS[tens.toString()] ?? '') + PATHU;
+    }
+    if (remainder > 0n) {
+      result += TAMIL_DIGITS[remainder.toString()] ?? '';
+    }
+    return result;
+  }
+
+  // 1-9
+  return TAMIL_DIGITS[n.toString()] ?? '';
+}
 
 // Special symbols accessible via Q-prefix shortcuts
 const SPECIAL_SYMBOLS: [string, string][] = [
@@ -231,10 +332,14 @@ export function transliterateWord(input: string): string {
       continue;
     }
 
-    // Convert digits to Tamil numerals
-    if (/[0-9]/.test(ch)) {
-      result += TAMIL_NUMBERS[ch] ?? ch;
-      pos++;
+    // Collect consecutive digits and commas, convert as a whole number
+    if (/[0-9,]/.test(ch)) {
+      let numStr = '';
+      while (pos < len && /[0-9,]/.test(input[pos])) {
+        numStr += input[pos];
+        pos++;
+      }
+      result += toTamilNumeral(numStr);
       continue;
     }
 
@@ -298,12 +403,12 @@ export function transliterateWord(input: string): string {
  * Non-alphabetic characters pass through unchanged.
  */
 export function transliterate(input: string): string {
-  return input.replace(/[a-zA-Z0-9]+/g, (word) => transliterateWord(word));
+  return input.replace(/[a-zA-Z0-9,]+/g, (word) => transliterateWord(word));
 }
 
 /**
- * Convert Arabic numerals to Tamil numerals.
+ * Convert Arabic numerals to Tamil numerals (full positional system).
  */
 export function toTamilNumbers(input: string): string {
-  return input.replace(/[0-9]/g, (d) => TAMIL_NUMBERS[d] ?? d);
+  return input.replace(/[\d,]+/g, (match) => toTamilNumeral(match));
 }
